@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EFOM - Sistema de Comprobantes Profesionales</title>
+
+    <!-- PWA / APP -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#F7931E">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Icono para navegadores -->
+    <link rel="icon" href="assets/icon-192.png">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Lora:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+
+    <!-- Librería para convertir HTML a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+
+        :root {
+            --primary-blue: #0a2e5c; 
+            --secondary-blue: #1e4b8a;
+            --accent-gold: #c9a227;
+            --text-dark: #111827;
+            --text-light: #4b5563;
+            --bg-canvas: #f3f4f6;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+            background-color: var(--bg-canvas);
+            line-height: 1.5;
+        }
+
+        header.app-header {
+            background: var(--primary-blue);
+            color: var(--white);
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 4px solid var(--secondary-blue);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 2rem;
+            padding: 0 1rem;
+        }
+
+        @media (max-width: 1000px) {
+            .container { grid-template-columns: 1fr; }
+        }
+
+        .panel-form {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 1rem;
+        }
+
+        h2.panel-title {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-blue);
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group { margin-bottom: 1rem; }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.75rem;
+            margin-bottom: 0.4rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .readonly-field {
+            background-color: #f9fafb;
+            color: #1f2937;
+            font-weight: 700;
+            border-color: #e5e7eb;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 0.9rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 1rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-update { background: var(--primary-blue); color: white; }
+        .btn-print { background: #059669; color: white; }
+        .btn-share { background: #6366f1; color: white; }
+        
+        .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-action:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+
+        /* Estilo del Papel */
+        .certificate-paper {
+            width: 21.59cm; 
+            min-height: 27.94cm;
+            background: white;
+            padding: 1.5cm 2cm;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0,0,0,0.1);
+            color: #000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Div oculto para el PDF (mismo contenido pero optimizado para captura) */
+        #pdf-content {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+        }
+
+        .certificate-paper::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 12px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--secondary-blue));
+        }
+
+        .cert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            padding-top: 0.5rem;
+        }
+
+        .logo-box { 
+            width: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo-box img { 
+            max-width: 100%; 
+            height: auto;
+            display: block;
+        }
+
+        .company-data { text-align: right; }
+        .company-data h3 {
+            font-family: 'Lora', serif;
+            font-size: 1.25rem;
+            color: var(--primary-blue);
+            margin-bottom: 5px;
+        }
+        .company-data p { font-size: 0.8rem; color: #374151; margin: 1px 0; }
+
+        .cert-title-area {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+            padding: 1.5rem 0;
+        }
+
+        .cert-title-area h2 {
+            font-family: 'Lora', serif;
+            font-size: 2.2rem;
+            color: var(--primary-blue);
+            letter-spacing: 4px;
+            margin-bottom: 5px;
+        }
+
+        .consecutive-badge {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #dc2626;
+        }
+
+        .cert-intro {
+            font-size: 1.05rem;
+            margin-bottom: 2rem;
+            text-align: justify;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2.5rem;
+        }
+
+        .data-table td {
+            padding: 14px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .td-label {
+            font-weight: 700;
+            color: var(--primary-blue);
+            width: 32%;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .td-value { font-size: 1.1rem; }
+
+        .price-row { background-color: #f8fafc; }
+        .price-text {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+        }
+
+        .cert-footer {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-bottom: 1rem;
+        }
+
+        .signature-box {
+            width: 280px;
+            text-align: center;
+        }
+
+        .signature-name {
+            font-family: 'Lora', serif;
+            font-size: 1.5rem;
+            font-style: italic;
+            color: var(--secondary-blue);
+            margin-bottom: 5px;
+        }
+
+        .signature-line {
+            border-top: 2px solid #111827;
+            padding-top: 5px;
+        }
+
+        .contact-info {
+            text-align: right;
+            font-size: 0.75rem;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+
+        @media print {
+            body { background: white !important; }
+            .no-print { display: none !important; }
+            .container { display: block; margin: 0; padding: 0; max-width: none; }
+            .certificate-paper {
+                box-shadow: none !important;
+                margin: 0 !important;
+                width: 100% !important;
+                border: none !important;
+                padding: 1.5cm 2cm !important;
+            }
+            @page { size: letter; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="app-header no-print">
+        <h1>Generador de Comprobantes EFOM</h1>
+    </header>
+
+    <div class="container">
+        <!-- Formulario Izquierdo -->
+        <aside class="panel-form no-print">
+            <h2 class="panel-title">Nuevo Soporte de Pago</h2>
+            <form id="pay-form">
+                <div class="form-group">
+                    <label>N° Soporte</label>
+                    <input type="text" id="inp-num" class="readonly-field" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Fecha de Pago</label>
+                    <input type="date" id="inp-date" required>
+                </div>
+                <div class="form-group">
+                    <label>Nombre del Cliente</label>
+                    <input type="text" id="inp-client" placeholder="Nombre completo" required>
+                </div>
+                <div class="form-group">
+                    <label>Documento Identidad</label>
+                    <input type="text" id="inp-cid" placeholder="C.C. / NIT / Pasaporte">
+                </div>
+                <div class="form-group">
+                    <label>Servicio Prestado</label>
+                    <select id="inp-service" required>
+                        <option value="Clases de canto">Clases de canto</option>
+                        <option value="Clases de guitarra">Clases de guitarra</option>
+                        <option value="Clases de piano">Clases de piano</option>
+                        <option value="Clases de iniciación musical">Clases de iniciación musical</option>
+                        <option value="Taller de técnica vocal">Taller de técnica vocal</option>
+                        <option value="Producción musical">Producción musical</option>
+                        <option value="Curso virtual de teoría">Curso virtual de teoría</option>
+                        <option value="Asesoría musical">Asesoría musical</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label>Moneda</label>
+                        <select id="inp-currency">
+                            <option value="COP">COP (Pesos)</option>
+                            <option value="USD">USD (Dólares)</option>
+                            <option value="EUR">EUR (Euros)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Valor Recibido</label>
+                        <input type="number" id="inp-amount" placeholder="Ej: 150000" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Método de Pago</label>
+                    <select id="inp-method">
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Transferencia (Nequi / Daviplata)">Transferencia</option>
+                        <option value="PayPal / Zelle">PayPal / Zelle</option>
+                        <option value="Consignación">Consignación</option>
+                        <option value="Tarjeta">Tarjeta</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Concepto Detallado</label>
+                    <textarea id="inp-desc" rows="2" placeholder="Ej: Pago mensualidad Octubre"></textarea>
+                </div>
+
+                <button type="submit" class="btn-action btn-update">Actualizar Vista</button>
+                <button type="button" onclick="window.print()" class="btn-action btn-print">Guardar PDF</button>
+                <button type="button" id="btn-share" class="btn-action btn-share">
+                    <svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M18,16.08C17.24,16.08 16.56,16.38 16.04,16.85L8.91,12.7C8.96,12.47 9,12.24 9,12C9,11.76 8.96,11.53 8.91,11.3L15.96,7.19C16.5,7.69 17.21,8 18,8A3,3 0 0,0 21,5A3,3 0 0,0 18,2A3,3 0 0,0 15,5C15,5.24 15.04,5.47 15.09,5.7L8.04,9.81C7.5,9.31 6.79,9 6,9A3,3 0 0,0 3,12A3,3 0 0,0 6,15C6.79,15 7.5,14.69 8.04,14.19L15.14,18.3C15.09,18.53 15.06,18.76 15.06,19C15.06,20.61 16.39,21.91 18,21.91C19.61,21.91 20.91,20.61 20.91,19C20.91,17.39 19.61,16.08 18,16.08Z"/></svg>
+                    <span id="btn-share-text">Compartir PDF</span>
+                </button>
+            </form>
+        </aside>
+
+        <!-- Vista del Documento Principal -->
+        <main id="preview">
+            <div id="capture-area" class="certificate-paper">
+                <div class="cert-header">
+                    <div class="logo-box">
+                        <img src="assets/logo-efom.jpg" 
+                             alt="Logo EFOM"
+                             onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22100%22%3E%3Crect fill=%22%230a2e5c%22 width=%22200%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2224%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22%3EEFOM%3C/text%3E%3C/svg%3E';">
+                    </div>
+                    <div class="company-data">
+                        <h3>ESCUELA DE FORMACIÓN MUSICAL EFOM</h3>
+                        <p><strong>Elkin Yesid Jaimes Gomez</strong></p>
+                        <p>NIT: 91.524.528-7</p>
+                        <p>Cúcuta, Norte de Santander</p>
+                        <p>Tel: 300 527 9347</p>
+                    </div>
+                </div>
+
+                <div class="cert-title-area">
+                    <h2>SOPORTE DE PAGO</h2>
+                    <p class="consecutive-badge">COMPROBANTE N° <span id="out-num">0000</span></p>
+                </div>
+
+                <div class="cert-intro">
+                    La <strong>Escuela de Formación Musical EFOM</strong> certifica que ha recibido el pago correspondiente por la prestación de servicios académicos y artísticos, bajo los términos que se detallan a continuación:
+                </div>
+
+                <table class="data-table">
+                    <tr>
+                        <td class="td-label">Fecha de Pago</td>
+                        <td class="td-value" id="out-date">-</td>
+                    </tr>
+                    <tr>
+                        <td class="td-label">Recibido de</td>
+                        <td class="td-value" id="out-client" style="font-weight:700;">-</td>
+                    </tr>
+                    <tr>
+                        <td class="td-label">Identificación</td>
+                        <td class="td-value" id="out-cid">-</td>
+                    </tr>
+                    <tr>
+                        <td class="td-label">Servicio</td>
+                        <td class="td-value" id="out-service">-</td>
+                    </tr>
+                    <tr>
+                        <td class="td-label">Concepto</td>
+                        <td class="td-value" id="out-desc" style="font-style:italic;">-</td>
+                    </tr>
+                    <tr>
+                        <td class="td-label">Medio de Pago</td>
+                        <td class="td-value" id="out-method">-</td>
+                    </tr>
+                    <tr class="price-row">
+                        <td class="td-label">Valor Total</td>
+                        <td class="td-value price-text" id="out-amount">$ 0</td>
+                    </tr>
+                </table>
+
+                <div class="cert-footer">
+                    <div class="signature-box">
+                        <div class="signature-name">Elkin Jaimes</div>
+                        <div class="signature-line">
+                            <p><strong>Firma Autorizada</strong></p>
+                            <p style="font-size:0.7rem;">C.C. 91.524.528 - EFOM Dirección</p>
+                        </div>
+                    </div>
+                    <div class="contact-info">
+                        <p>kingjaimesgomez@gmail.com</p>
+                        <p>escueladeformacionmusicalefom@gmail.com</p>
+                        <p><em>Formación Consciente</em></p>
+                        <p><strong>Cúcuta, Colombia</strong></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const form = document.getElementById('pay-form');
+        const btnShare = document.getElementById('btn-share');
+        const btnShareText = document.getElementById('btn-share-text');
+        let currentFormattedAmount = "$ 0"; 
+
+        window.onload = () => {
+            const today = new Date();
+            document.getElementById('inp-date').valueAsDate = today;
+
+            let currentNum = localStorage.getItem('efom_val_num') || 1001;
+            document.getElementById('inp-num').value = currentNum;
+            document.getElementById('out-num').innerText = currentNum;
+            
+            document.getElementById('out-date').innerText = today.toLocaleDateString('es-CO', { 
+                day: 'numeric', month: 'long', year: 'numeric' 
+            });
+        };
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            updateDocument();
+        });
+
+        btnShare.addEventListener('click', async () => {
+            await sharePDF();
+        });
+
+        function updateDocument() {
+            const client = document.getElementById('inp-client').value;
+            const cid = document.getElementById('inp-cid').value || 'N/A';
+            const service = document.getElementById('inp-service').value;
+            const amount = document.getElementById('inp-amount').value;
+            const currency = document.getElementById('inp-currency').value;
+            const desc = document.getElementById('inp-desc').value || 'Sin detalles adicionales';
+            const method = document.getElementById('inp-method').value;
+            const rawDate = document.getElementById('inp-date').value;
+
+            const dateObj = new Date(rawDate + 'T12:00:00');
+            const formattedDate = dateObj.toLocaleDateString('es-CO', { 
+                day: 'numeric', month: 'long', year: 'numeric' 
+            });
+
+            const currencyLocales = {
+                'COP': { locale: 'es-CO', currency: 'COP', digits: 0 },
+                'USD': { locale: 'en-US', currency: 'USD', digits: 2 },
+                'EUR': { locale: 'de-DE', currency: 'EUR', digits: 2 }
+            };
+
+            const config = currencyLocales[currency];
+            const formattedAmount = new Intl.NumberFormat(config.locale, {
+                style: 'currency',
+                currency: config.currency,
+                maximumFractionDigits: config.digits,
+                minimumFractionDigits: config.digits
+            }).format(amount);
+
+            currentFormattedAmount = formattedAmount + (currency !== 'COP' ? ` ${currency}` : '');
+
+            document.getElementById('out-client').innerText = client.toUpperCase();
+            document.getElementById('out-cid').innerText = cid;
+            document.getElementById('out-service').innerText = service;
+            document.getElementById('out-desc').innerText = desc;
+            document.getElementById('out-amount').innerText = currentFormattedAmount;
+            document.getElementById('out-method').innerText = method;
+            document.getElementById('out-date').innerText = formattedDate;
+
+            if (window.innerWidth < 1000) {
+                document.getElementById('preview').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        async function sharePDF() {
+            // 1. Validar que el formulario esté lleno
+            if(!form.checkValidity()){
+                form.reportValidity();
+                return;
+            }
+
+            updateDocument();
+            
+            // UI Feedback
+            btnShare.disabled = true;
+            btnShareText.innerText = "Generando PDF...";
+
+            const element = document.getElementById('capture-area');
+            const num = document.getElementById('inp-num').value;
+            const client = document.getElementById('inp-client').value.trim().replace(/\s+/g, '_');
+            const fileName = `EFOM_Soporte_${num}_${client}.pdf`;
+
+            // Configuración de html2pdf
+            const opt = {
+                margin: 0,
+                filename: fileName,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+                jsPDF: { unit: 'cm', format: 'letter', orientation: 'portrait' }
+            };
+
+            try {
+                // Generar el PDF como Blob
+                const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
+                
+                // Crear un archivo para compartir
+                const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+                // Verificar si el navegador soporta compartir archivos
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Soporte de Pago EFOM',
+                        text: `Adjunto envío el soporte de pago N° ${num} de la Escuela de Formación Musical EFOM.`
+                    });
+                } else {
+                    // Fallback: Descargar si no puede compartir
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(pdfBlob);
+                    link.download = fileName;
+                    link.click();
+                    alert("Tu navegador no permite compartir archivos directamente. El PDF se ha descargado.");
+                }
+            } catch (error) {
+                console.error('Error compartiendo PDF:', error);
+                alert("Hubo un error al generar o compartir el archivo.");
+            } finally {
+                btnShare.disabled = false;
+                btnShareText.innerText = "Compartir PDF";
+            }
+        }
+
+        window.onafterprint = () => {
+    let current = parseInt(localStorage.getItem('efom_val_num')) || 1001;
+    let next = current + 1;
+    localStorage.setItem('efom_val_num', next);
+    document.getElementById('inp-num').value = next;
+    document.getElementById('out-num').innerText = next;
+};
+</script>
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("service-worker.js")
+        .then(() => console.log("Service Worker EFOM registrado"))
+        .catch((err) => console.log("SW error:", err));
+    });
+  }
+</script>
+
+</body>
+</html>
