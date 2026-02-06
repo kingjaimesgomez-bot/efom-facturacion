@@ -464,9 +464,14 @@
             const today = new Date();
             document.getElementById('inp-date').valueAsDate = today;
 
-            let currentNum = localStorage.getItem('efom_val_num') || 1001;
-            document.getElementById('inp-num').value = currentNum;
-            document.getElementById('out-num').innerText = currentNum;
+let currentNum = parseInt(localStorage.getItem('efom_val_num')) || 2;
+
+function formatInvoice(num) {
+  return num.toString().padStart(4, '0');
+}
+
+document.getElementById('inp-num').value = formatInvoice(currentNum);
+document.getElementById('out-num').innerText = formatInvoice(currentNum);
             
             document.getElementById('out-date').innerText = today.toLocaleDateString('es-CO', { 
                 day: 'numeric', month: 'long', year: 'numeric' 
