@@ -6,14 +6,15 @@
 
     <title>EFOM - Sistema de Comprobantes Profesionales</title>
 
-    <!-- PWA / APP -->
-    <link rel="manifest" href="manifest.json">
+    <!-- PWA / APP - RUTAS RELATIVAS (./) -->
+    <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#F7931E">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- Icono para navegadores -->
-    <link rel="icon" href="assets/icon-192.png">
+    <!-- Icono para navegadores - RUTA RELATIVA -->
+    <link rel="icon" href="./assets/icon-192.png">
+    <link rel="apple-touch-icon" href="./assets/icon-192.png">
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Lora:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
@@ -22,7 +23,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-
+        /* ==========================================
+           ESTILOS COMPLETOS - COPIA TODO TU CSS AQUÍ
+           ========================================== */
+        
         :root {
             --primary-blue: #0a2e5c; 
             --secondary-blue: #1e4b8a;
@@ -55,15 +59,15 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 2rem auto;
             display: grid;
-            grid-template-columns: 380px 1fr;
+            grid-template-columns: 400px 1fr;
             gap: 2rem;
             padding: 0 1rem;
         }
 
-        @media (max-width: 1000px) {
+        @media (max-width: 1100px) {
             .container { grid-template-columns: 1fr; }
         }
 
@@ -87,7 +91,10 @@
             letter-spacing: 1px;
         }
 
-        .form-group { margin-bottom: 1rem; }
+        .form-group { 
+            margin-bottom: 1rem; 
+            position: relative;
+        }
         
         label {
             display: block;
@@ -104,6 +111,13 @@
             border: 1px solid #d1d5db;
             border-radius: 6px;
             font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(10, 46, 92, 0.1);
         }
 
         .readonly-field {
@@ -111,6 +125,49 @@
             color: #1f2937;
             font-weight: 700;
             border-color: #e5e7eb;
+        }
+
+        .autocomplete-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .autocomplete-item {
+            padding: 0.75rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background 0.2s;
+        }
+
+        .autocomplete-item:hover,
+        .autocomplete-item.active {
+            background-color: #f3f4f6;
+        }
+
+        .autocomplete-item strong {
+            color: var(--primary-blue);
+            display: block;
+        }
+
+        .autocomplete-item small {
+            color: #6b7280;
+            font-size: 0.8rem;
         }
 
         .btn-action {
@@ -131,12 +188,59 @@
 
         .btn-update { background: var(--primary-blue); color: white; }
         .btn-print { background: #059669; color: white; }
-        .btn-share { background: #6366f1; color: white; }
+        .btn-new { background: #7c3aed; color: white; }
         
         .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-action:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
 
-        /* Estilo del Papel */
+        .fab-share {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 999;
+        }
+
+        .fab-share:hover {
+            transform: scale(1.1) rotate(10deg);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+        }
+
+        .fab-share svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .client-status {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            display: none;
+        }
+
+        .client-status.saved {
+            display: block;
+            color: #059669;
+        }
+
+        .client-status.new {
+            display: block;
+            color: #f59e0b;
+        }
+
         .certificate-paper {
             width: 21.59cm; 
             min-height: 27.94cm;
@@ -144,17 +248,13 @@
             padding: 1.5cm 2cm;
             margin: 0 auto;
             position: relative;
-            box-shadow: 0 0 40px rgba(0,0,0,0.1);
+            box-shadow: 0 0 40px rgba(0,0,0,0.15);
             color: #000;
             display: flex;
             flex-direction: column;
-        }
-
-        /* Div oculto para el PDF (mismo contenido pero optimizado para captura) */
-        #pdf-content {
-            position: absolute;
-            left: -9999px;
-            top: -9999px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
         }
 
         .certificate-paper::before {
@@ -220,6 +320,7 @@
             font-size: 1.05rem;
             margin-bottom: 2rem;
             text-align: justify;
+            line-height: 1.6;
         }
 
         .data-table {
@@ -283,9 +384,21 @@
             line-height: 1.5;
         }
 
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .status-badge.new { background: #fef3c7; color: #92400e; }
+        .status-badge.saved { background: #d1fae5; color: #065f46; }
+
         @media print {
             body { background: white !important; }
-            .no-print { display: none !important; }
+            .no-print, .fab-share { display: none !important; }
             .container { display: block; margin: 0; padding: 0; max-width: none; }
             .certificate-paper {
                 box-shadow: none !important;
@@ -293,8 +406,21 @@
                 width: 100% !important;
                 border: none !important;
                 padding: 1.5cm 2cm !important;
+                page-break-inside: avoid;
             }
-            @page { size: letter; margin: 0; }
+            @page { 
+                size: letter; 
+                margin: 0; 
+            }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in {
+            animation: slideIn 0.3s ease-out;
         }
     </style>
 </head>
@@ -305,7 +431,6 @@
     </header>
 
     <div class="container">
-        <!-- Formulario Izquierdo -->
         <aside class="panel-form no-print">
             <h2 class="panel-title">Nuevo Soporte de Pago</h2>
             <form id="pay-form">
@@ -313,18 +438,30 @@
                     <label>N° Soporte</label>
                     <input type="text" id="inp-num" class="readonly-field" readonly>
                 </div>
+                
                 <div class="form-group">
                     <label>Fecha de Pago</label>
                     <input type="date" id="inp-date" required>
                 </div>
+                
                 <div class="form-group">
-                    <label>Nombre del Cliente</label>
-                    <input type="text" id="inp-client" placeholder="Nombre completo" required>
+                    <label>
+                        Nombre del Cliente
+                        <span id="client-badge" class="status-badge new" style="display:none;">Nuevo</span>
+                        <span id="client-saved-badge" class="status-badge saved" style="display:none;">Guardado</span>
+                    </label>
+                    <div class="autocomplete-container">
+                        <input type="text" id="inp-client" placeholder="Escribe para buscar..." required autocomplete="off">
+                        <span id="client-status" class="client-status">🆕</span>
+                        <div id="autocomplete-list" class="autocomplete-list"></div>
+                    </div>
                 </div>
+                
                 <div class="form-group">
                     <label>Documento Identidad</label>
                     <input type="text" id="inp-cid" placeholder="C.C. / NIT / Pasaporte">
                 </div>
+                
                 <div class="form-group">
                     <label>Servicio Prestado</label>
                     <select id="inp-service" required>
@@ -339,6 +476,7 @@
                         <option value="Otros">Otros</option>
                     </select>
                 </div>
+                
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <div class="form-group">
                         <label>Moneda</label>
@@ -353,6 +491,7 @@
                         <input type="number" id="inp-amount" placeholder="Ej: 150000" required>
                     </div>
                 </div>
+                
                 <div class="form-group">
                     <label>Método de Pago</label>
                     <select id="inp-method">
@@ -363,28 +502,26 @@
                         <option value="Tarjeta">Tarjeta</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
                     <label>Concepto Detallado</label>
                     <textarea id="inp-desc" rows="2" placeholder="Ej: Pago mensualidad Octubre"></textarea>
                 </div>
 
-                <button type="submit" class="btn-action btn-update">Actualizar Vista</button>
-                <button type="button" onclick="window.print()" class="btn-action btn-print">Guardar PDF</button>
-                <button type="button" id="btn-share" class="btn-action btn-share">
-                    <svg style="width:20px;height:20px" viewBox="0 0 24 24"><path fill="currentColor" d="M18,16.08C17.24,16.08 16.56,16.38 16.04,16.85L8.91,12.7C8.96,12.47 9,12.24 9,12C9,11.76 8.96,11.53 8.91,11.3L15.96,7.19C16.5,7.69 17.21,8 18,8A3,3 0 0,0 21,5A3,3 0 0,0 18,2A3,3 0 0,0 15,5C15,5.24 15.04,5.47 15.09,5.7L8.04,9.81C7.5,9.31 6.79,9 6,9A3,3 0 0,0 3,12A3,3 0 0,0 6,15C6.79,15 7.5,14.69 8.04,14.19L15.14,18.3C15.09,18.53 15.06,18.76 15.06,19C15.06,20.61 16.39,21.91 18,21.91C19.61,21.91 20.91,20.61 20.91,19C20.91,17.39 19.61,16.08 18,16.08Z"/></svg>
-                    <span id="btn-share-text">Compartir PDF</span>
-                </button>
+                <button type="submit" class="btn-action btn-update">💾 Guardar Cliente y Actualizar</button>
+                <button type="button" onclick="printDocument()" class="btn-action btn-print">🖨️ Imprimir / Guardar PDF</button>
+                <button type="button" onclick="generateNewInvoice()" class="btn-action btn-new" style="margin-top: 2rem;">🔄 Nuevo Comprobante (+1)</button>
             </form>
         </aside>
 
-        <!-- Vista del Documento Principal -->
-        <main id="preview">
+        <main id="preview" style="position: relative;">
             <div id="capture-area" class="certificate-paper">
                 <div class="cert-header">
                     <div class="logo-box">
-                        <img src="assets/logo-efom.jpg" 
-                             alt="Logo EFOM"
-                             onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22100%22%3E%3Crect fill=%22%230a2e5c%22 width=%22200%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-size=%2224%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22%3EEFOM%3C/text%3E%3C/svg%3E';">
+                        <!-- RUTA RELATIVA PARA EL LOGO -->
+                        <img src="./assets/logo-efom.jpg" alt="Logo EFOM"
+                             onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22100%22%3E%3Crect fill=%22%230a2e5c%22 width=%22200%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-family=%22Arial%22 font-size=%2224%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22%3EEFOM%3C/text%3E%3C/svg%3E';"
+                             crossorigin="anonymous">
                     </div>
                     <div class="company-data">
                         <h3>ESCUELA DE FORMACIÓN MUSICAL EFOM</h3>
@@ -405,34 +542,13 @@
                 </div>
 
                 <table class="data-table">
-                    <tr>
-                        <td class="td-label">Fecha de Pago</td>
-                        <td class="td-value" id="out-date">-</td>
-                    </tr>
-                    <tr>
-                        <td class="td-label">Recibido de</td>
-                        <td class="td-value" id="out-client" style="font-weight:700;">-</td>
-                    </tr>
-                    <tr>
-                        <td class="td-label">Identificación</td>
-                        <td class="td-value" id="out-cid">-</td>
-                    </tr>
-                    <tr>
-                        <td class="td-label">Servicio</td>
-                        <td class="td-value" id="out-service">-</td>
-                    </tr>
-                    <tr>
-                        <td class="td-label">Concepto</td>
-                        <td class="td-value" id="out-desc" style="font-style:italic;">-</td>
-                    </tr>
-                    <tr>
-                        <td class="td-label">Medio de Pago</td>
-                        <td class="td-value" id="out-method">-</td>
-                    </tr>
-                    <tr class="price-row">
-                        <td class="td-label">Valor Total</td>
-                        <td class="td-value price-text" id="out-amount">$ 0</td>
-                    </tr>
+                    <tr><td class="td-label">Fecha de Pago</td><td class="td-value" id="out-date">-</td></tr>
+                    <tr><td class="td-label">Recibido de</td><td class="td-value" id="out-client" style="font-weight:700;">-</td></tr>
+                    <tr><td class="td-label">Identificación</td><td class="td-value" id="out-cid">-</td></tr>
+                    <tr><td class="td-label">Servicio</td><td class="td-value" id="out-service">-</td></tr>
+                    <tr><td class="td-label">Concepto</td><td class="td-value" id="out-desc" style="font-style:italic;">-</td></tr>
+                    <tr><td class="td-label">Medio de Pago</td><td class="td-value" id="out-method">-</td></tr>
+                    <tr class="price-row"><td class="td-label">Valor Total</td><td class="td-value price-text" id="out-amount">$ 0</td></tr>
                 </table>
 
                 <div class="cert-footer">
@@ -454,37 +570,282 @@
         </main>
     </div>
 
+    <button class="fab-share no-print" onclick="sharePDF()" title="Compartir PDF">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+            <polyline points="16 6 12 2 8 6"></polyline>
+            <line x1="12" y1="2" x2="12" y2="15"></line>
+        </svg>
+    </button>
+
+    <!-- ==========================================
+         JAVASCRIPT COMPLETO
+         ========================================== -->
     <script>
+        // ==========================================
+        // BASE DE DATOS DE CLIENTES
+        // ==========================================
+        
+        const CLIENTS_KEY = 'efom_clients_database';
+        
+        function getClientsDB() {
+            const data = localStorage.getItem(CLIENTS_KEY);
+            return data ? JSON.parse(data) : {};
+        }
+        
+        function saveClientsDB(db) {
+            localStorage.setItem(CLIENTS_KEY, JSON.stringify(db));
+        }
+        
+        function saveClient(name, data) {
+            const db = getClientsDB();
+            const normalizedName = name.toLowerCase().trim();
+            db[normalizedName] = {
+                name: name.trim(),
+                cid: data.cid || '',
+                service: data.service || 'Clases de canto',
+                currency: data.currency || 'COP',
+                method: data.method || 'Efectivo',
+                lastUpdated: new Date().toISOString()
+            };
+            saveClientsDB(db);
+        }
+        
+        function findClient(name) {
+            const db = getClientsDB();
+            const normalizedName = name.toLowerCase().trim();
+            return db[normalizedName] || null;
+        }
+        
+        function searchClients(query) {
+            const db = getClientsDB();
+            const normalizedQuery = query.toLowerCase().trim();
+            const results = [];
+            
+            for (const key in db) {
+                if (key.includes(normalizedQuery) || db[key].cid.includes(normalizedQuery)) {
+                    results.push(db[key]);
+                }
+            }
+            
+            return results.sort((a, b) => a.name.localeCompare(b.name));
+        }
+
+        // ==========================================
+        // AUTOCOMPLETE
+        // ==========================================
+        
+        const clientInput = document.getElementById('inp-client');
+        const autocompleteList = document.getElementById('autocomplete-list');
+        const clientStatus = document.getElementById('client-status');
+        const clientBadge = document.getElementById('client-badge');
+        const clientSavedBadge = document.getElementById('client-saved-badge');
+        
+        let selectedIndex = -1;
+        let currentResults = [];
+        
+        clientInput.addEventListener('input', (e) => {
+            const value = e.target.value;
+            
+            if (value.length < 2) {
+                closeAutocomplete();
+                checkClientStatus(value);
+                return;
+            }
+            
+            currentResults = searchClients(value);
+            renderAutocomplete(currentResults, value);
+            checkClientStatus(value);
+        });
+        
+        clientInput.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, currentResults.length - 1);
+                updateSelection();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                updateSelection();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (selectedIndex >= 0 && currentResults[selectedIndex]) {
+                    selectClient(currentResults[selectedIndex]);
+                }
+            } else if (e.key === 'Escape') {
+                closeAutocomplete();
+            }
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.autocomplete-container')) {
+                closeAutocomplete();
+            }
+        });
+        
+        function renderAutocomplete(results, query) {
+            if (results.length === 0) {
+                closeAutocomplete();
+                return;
+            }
+            
+            autocompleteList.innerHTML = '';
+            selectedIndex = -1;
+            
+            results.forEach((client, index) => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                div.innerHTML = `
+                    <strong>${highlightMatch(client.name, query)}</strong>
+                    <small>Doc: ${client.cid || 'No registrado'} | ${client.service}</small>
+                `;
+                div.addEventListener('click', () => selectClient(client));
+                autocompleteList.appendChild(div);
+            });
+            
+            autocompleteList.style.display = 'block';
+            autocompleteList.classList.add('animate-in');
+        }
+        
+        function highlightMatch(text, query) {
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<mark style="background:#fef3c7;padding:0 2px;">$1</mark>');
+        }
+        
+        function updateSelection() {
+            const items = autocompleteList.querySelectorAll('.autocomplete-item');
+            items.forEach((item, index) => {
+                item.classList.toggle('active', index === selectedIndex);
+            });
+            
+            if (selectedIndex >= 0 && items[selectedIndex]) {
+                items[selectedIndex].scrollIntoView({ block: 'nearest' });
+            }
+        }
+        
+        function selectClient(client) {
+            clientInput.value = client.name;
+            document.getElementById('inp-cid').value = client.cid || '';
+            document.getElementById('inp-service').value = client.service || 'Clases de canto';
+            document.getElementById('inp-currency').value = client.currency || 'COP';
+            document.getElementById('inp-method').value = client.method || 'Efectivo';
+            
+            closeAutocomplete();
+            checkClientStatus(client.name);
+            
+            clientInput.style.background = '#d1fae5';
+            setTimeout(() => {
+                clientInput.style.background = '';
+            }, 500);
+        }
+        
+        function closeAutocomplete() {
+            autocompleteList.style.display = 'none';
+            selectedIndex = -1;
+            currentResults = [];
+        }
+        
+        function checkClientStatus(name) {
+            const client = findClient(name);
+            const normalizedName = name.trim().toLowerCase();
+            
+            if (!normalizedName) {
+                clientStatus.style.display = 'none';
+                clientBadge.style.display = 'none';
+                clientSavedBadge.style.display = 'none';
+                return;
+            }
+            
+            if (client) {
+                clientStatus.textContent = '✓';
+                clientStatus.className = 'client-status saved';
+                clientBadge.style.display = 'none';
+                clientSavedBadge.style.display = 'inline-block';
+            } else {
+                clientStatus.textContent = '🆕';
+                clientStatus.className = 'client-status new';
+                clientBadge.style.display = 'inline-block';
+                clientSavedBadge.style.display = 'none';
+            }
+            clientStatus.style.display = 'block';
+        }
+
+        // ==========================================
+        // SISTEMA DE CONSECUTIVOS
+        // ==========================================
+        
+        const INVOICE_KEY = 'efom_invoice_number';
+        const STARTING_NUMBER = 1000;
+        
+        function getCurrentInvoiceNumber() {
+            const stored = localStorage.getItem(INVOICE_KEY);
+            return stored ? parseInt(stored) : STARTING_NUMBER;
+        }
+        
+        function formatInvoiceNumber(num) {
+            return num.toString().padStart(4, '0');
+        }
+        
+        function saveInvoiceNumber(num) {
+            localStorage.setItem(INVOICE_KEY, num.toString());
+        }
+        
+        function incrementInvoiceNumber() {
+            const current = getCurrentInvoiceNumber();
+            const next = current + 1;
+            saveInvoiceNumber(next);
+            return next;
+        }
+        
+        function updateInvoiceDisplay(num) {
+            const formatted = formatInvoiceNumber(num);
+            document.getElementById('inp-num').value = formatted;
+            document.getElementById('out-num').innerText = formatted;
+        }
+
+        // ==========================================
+        // INICIALIZACIÓN
+        // ==========================================
+        
         const form = document.getElementById('pay-form');
-        const btnShare = document.getElementById('btn-share');
-        const btnShareText = document.getElementById('btn-share-text');
-        let currentFormattedAmount = "$ 0"; 
+        let currentFormattedAmount = "$ 0";
+        let isPrinting = false;
 
         window.onload = () => {
             const today = new Date();
             document.getElementById('inp-date').valueAsDate = today;
-
-let currentNum = parseInt(localStorage.getItem('efom_val_num')) || 2;
-
-function formatInvoice(num) {
-  return num.toString().padStart(4, '0');
-}
-
-document.getElementById('inp-num').value = formatInvoice(currentNum);
-document.getElementById('out-num').innerText = formatInvoice(currentNum);
+            updateInvoiceDisplay(getCurrentInvoiceNumber());
             
             document.getElementById('out-date').innerText = today.toLocaleDateString('es-CO', { 
                 day: 'numeric', month: 'long', year: 'numeric' 
             });
         };
 
+        // ==========================================
+        // ACTUALIZAR Y GUARDAR
+        // ==========================================
+        
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             updateDocument();
-        });
-
-        btnShare.addEventListener('click', async () => {
-            await sharePDF();
+            
+            const clientName = document.getElementById('inp-client').value;
+            if (clientName.trim()) {
+                saveClient(clientName, {
+                    cid: document.getElementById('inp-cid').value,
+                    service: document.getElementById('inp-service').value,
+                    currency: document.getElementById('inp-currency').value,
+                    method: document.getElementById('inp-method').value
+                });
+                checkClientStatus(clientName);
+                
+                const btn = e.submitter;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Cliente Guardado';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                }, 1500);
+            }
         });
 
         function updateDocument() {
@@ -497,7 +858,9 @@ document.getElementById('out-num').innerText = formatInvoice(currentNum);
             const method = document.getElementById('inp-method').value;
             const rawDate = document.getElementById('inp-date').value;
 
-            const dateObj = new Date(rawDate + 'T12:00:00');
+            const [year, month, day] = rawDate.split('-').map(Number);
+            const dateObj = new Date(year, month - 1, day);
+            
             const formattedDate = dateObj.toLocaleDateString('es-CO', { 
                 day: 'numeric', month: 'long', year: 'numeric' 
             });
@@ -526,88 +889,207 @@ document.getElementById('out-num').innerText = formatInvoice(currentNum);
             document.getElementById('out-method').innerText = method;
             document.getElementById('out-date').innerText = formattedDate;
 
-            if (window.innerWidth < 1000) {
+            if (window.innerWidth < 1100) {
                 document.getElementById('preview').scrollIntoView({ behavior: 'smooth' });
             }
         }
 
+        // ==========================================
+        // IMPRESIÓN
+        // ==========================================
+        
+        function printDocument() {
+            if(!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            updateDocument();
+            isPrinting = true;
+            
+            setTimeout(() => {
+                window.print();
+            }, 100);
+        }
+
+        window.onafterprint = () => {
+            if(!isPrinting) return;
+            isPrinting = false;
+            
+            setTimeout(() => {
+                if(confirm('¿Se imprimió/guardó correctamente?\n\nSe generará el siguiente número consecutivo.')) {
+                    generateNewInvoice();
+                }
+            }, 100);
+        };
+
+        // ==========================================
+        // COMPARTIR PDF - ALTA CALIDAD
+        // ==========================================
+        
         async function sharePDF() {
-            // 1. Validar que el formulario esté lleno
             if(!form.checkValidity()){
                 form.reportValidity();
+                document.querySelector('.panel-form').scrollIntoView({ behavior: 'smooth' });
                 return;
             }
 
             updateDocument();
             
-            // UI Feedback
-            btnShare.disabled = true;
-            btnShareText.innerText = "Generando PDF...";
+            const fab = document.querySelector('.fab-share');
+            fab.style.transform = 'scale(0.8)';
+            fab.innerHTML = '<div style="width:24px;height:24px;border:3px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>';
+            
+            const style = document.createElement('style');
+            style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+            document.head.appendChild(style);
 
             const element = document.getElementById('capture-area');
             const num = document.getElementById('inp-num').value;
             const client = document.getElementById('inp-client').value.trim().replace(/\s+/g, '_');
             const fileName = `EFOM_Soporte_${num}_${client}.pdf`;
 
-            // Configuración de html2pdf
             const opt = {
-                margin: 0,
+                margin: [0, 0, 0, 0],
                 filename: fileName,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-                jsPDF: { unit: 'cm', format: 'letter', orientation: 'portrait' }
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { 
+                    scale: 4,
+                    useCORS: true, 
+                    letterRendering: true,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: element.scrollWidth,
+                    windowHeight: element.scrollHeight,
+                    backgroundColor: '#ffffff',
+                    logging: false
+                },
+                jsPDF: { 
+                    unit: 'mm',
+                    format: [215.9, 279.4],
+                    orientation: 'portrait',
+                    compress: false
+                }
             };
 
             try {
-                // Generar el PDF como Blob
-                const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
+                await document.fonts.ready;
                 
-                // Crear un archivo para compartir
+                const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
                 const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
 
-                // Verificar si el navegador soporta compartir archivos
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share({
                         files: [file],
-                        title: 'Soporte de Pago EFOM',
-                        text: `Adjunto envío el soporte de pago N° ${num} de la Escuela de Formación Musical EFOM.`
+                        title: `Soporte de Pago EFOM - ${num}`,
+                        text: `Adjunto soporte de pago N° ${num} - ${client.replace(/_/g, ' ')}`
                     });
+                    
+                    setTimeout(() => {
+                        if(confirm('¿Desea generar un nuevo comprobante con el siguiente número?')) {
+                            generateNewInvoice();
+                        }
+                    }, 500);
+                    
                 } else {
-                    // Fallback: Descargar si no puede compartir
+                    const url = URL.createObjectURL(pdfBlob);
                     const link = document.createElement('a');
-                    link.href = URL.createObjectURL(pdfBlob);
+                    link.href = url;
                     link.download = fileName;
                     link.click();
-                    alert("Tu navegador no permite compartir archivos directamente. El PDF se ha descargado.");
+                    
+                    setTimeout(() => URL.revokeObjectURL(url), 100);
+                    
+                    setTimeout(() => {
+                        if(confirm('PDF descargado. ¿Desea generar un nuevo comprobante?')) {
+                            generateNewInvoice();
+                        }
+                    }, 500);
                 }
             } catch (error) {
-                console.error('Error compartiendo PDF:', error);
-                alert("Hubo un error al generar o compartir el archivo.");
+                console.error('Error:', error);
+                alert("Error al generar PDF. Intenta usar 'Imprimir' como alternativa.");
             } finally {
-                btnShare.disabled = false;
-                btnShareText.innerText = "Compartir PDF";
+                fab.style.transform = '';
+                fab.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                    <polyline points="16 6 12 2 8 6"></polyline>
+                    <line x1="12" y1="2" x2="12" y2="15"></line>
+                </svg>`;
             }
         }
 
-        window.onafterprint = () => {
-    let current = parseInt(localStorage.getItem('efom_val_num')) || 1001;
-    let next = current + 1;
-    localStorage.setItem('efom_val_num', next);
-    document.getElementById('inp-num').value = next;
-    document.getElementById('out-num').innerText = next;
-};
-</script>
+        // ==========================================
+        // NUEVO COMPROBANTE
+        // ==========================================
+        
+        function generateNewInvoice() {
+            const newNum = incrementInvoiceNumber();
+            updateInvoiceDisplay(newNum);
+            
+            const dateField = document.getElementById('inp-date');
+            const currentDate = dateField.value;
+            
+            const currentClient = document.getElementById('inp-client').value;
+            if (currentClient.trim()) {
+                saveClient(currentClient, {
+                    cid: document.getElementById('inp-cid').value,
+                    service: document.getElementById('inp-service').value,
+                    currency: document.getElementById('inp-currency').value,
+                    method: document.getElementById('inp-method').value
+                });
+            }
+            
+            form.reset();
+            dateField.value = currentDate;
+            
+            document.getElementById('out-client').innerText = '-';
+            document.getElementById('out-cid').innerText = '-';
+            document.getElementById('out-service').innerText = '-';
+            document.getElementById('out-desc').innerText = '-';
+            document.getElementById('out-amount').innerText = '$ 0';
+            document.getElementById('out-method').innerText = '-';
+            
+            const [year, month, day] = currentDate.split('-').map(Number);
+            const dateObj = new Date(year, month - 1, day);
+            document.getElementById('out-date').innerText = dateObj.toLocaleDateString('es-CO', { 
+                day: 'numeric', month: 'long', year: 'numeric' 
+            });
+            
+            checkClientStatus('');
+            
+            if (window.innerWidth < 1100) {
+                document.querySelector('.panel-form').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
 
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker
-        .register("service-worker.js")
-        .then(() => console.log("Service Worker EFOM registrado"))
-        .catch((err) => console.log("SW error:", err));
-    });
-  }
-</script>
+        document.getElementById('inp-service').addEventListener('change', (e) => {
+            if(e.target.value === 'Otros') {
+                const custom = prompt('Especifique el servicio:');
+                if(custom?.trim()) {
+                    document.getElementById('inp-desc').value = 'Servicio: ' + custom.trim();
+                }
+            }
+        });
+
+        // ==========================================
+        // REGISTRO DEL SERVICE WORKER (GitHub Pages)
+        // ==========================================
+        
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker
+                    .register("./service-worker.js")
+                    .then((registration) => {
+                        console.log("SW registrado:", registration.scope);
+                    })
+                    .catch((err) => {
+                        console.log("SW error:", err);
+                    });
+            });
+        }
+    </script>
 
 </body>
-</html>
+</html> 
+
