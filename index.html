@@ -414,6 +414,22 @@
             }
         }
 
+        .share-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.65rem 1.1rem;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .share-btn:hover { opacity: 0.88; transform: translateY(-2px); }
+
         @keyframes slideIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -508,9 +524,9 @@
                     <textarea id="inp-desc" rows="2" placeholder="Ej: Pago mensualidad Octubre"></textarea>
                 </div>
 
-                <button type="submit" class="btn-action btn-update">💾 Guardar Cliente y Actualizar</button>
-                <button type="button" onclick="printDocument()" class="btn-action btn-print">🖨️ Imprimir / Guardar PDF</button>
-                <button type="button" onclick="generateNewInvoice()" class="btn-action btn-new" style="margin-top: 2rem;">🔄 Nuevo Comprobante (+1)</button>
+                <button type="submit" class="btn-action btn-update">💾 Guardar Cliente</button>
+                <button type="button" onclick="updateDocument()" class="btn-action btn-update" style="background:#1e4b8a; margin-top:0.5rem;">🔄 Actualizar Vista</button>
+                <button type="button" onclick="generateNewInvoice()" class="btn-action btn-new" style="margin-top: 2rem;">➕ Nuevo Comprobante (+1)</button>
             </form>
         </aside>
 
@@ -534,7 +550,7 @@
 
                 <div class="cert-title-area">
                     <h2>SOPORTE DE PAGO</h2>
-                    <p class="consecutive-badge">COMPROBANTE N° <span id="out-num">0000</span></p>
+                    <p class="consecutive-badge">COMPROBANTE N° <span id="out-num">0008</span></p>
                 </div>
 
                 <div class="cert-intro">
@@ -560,8 +576,8 @@
                         </div>
                     </div>
                     <div class="contact-info">
-                        <p>kingjaimesgomez@gmail.com</p>
-                        <p>escueladeformacionmusicalefom@gmail.com</p>
+                        <p><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="701b191e171a11191d1503171f1d150a30171d11191c5e131f1d">[email&#160;protected]</a></p>
+                        <p><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c9acbaaabcaca5a8adacafa6bba4a8aaa0a6a7a4bcbaa0aaa8a5acafa6a489aea4a8a0a5e7aaa6a4">[email&#160;protected]</a></p>
                         <p><em>Formación Consciente</em></p>
                         <p><strong>Cúcuta, Colombia</strong></p>
                     </div>
@@ -570,18 +586,43 @@
         </main>
     </div>
 
-    <button class="fab-share no-print" onclick="sharePDF()" title="Compartir PDF">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-            <polyline points="16 6 12 2 8 6"></polyline>
-            <line x1="12" y1="2" x2="12" y2="15"></line>
-        </svg>
-    </button>
+    <!-- Panel de acciones debajo del baucher -->
+    <div id="action-panel" class="no-print" style="max-width:21.59cm; margin: 1.5rem auto 3rem auto; padding: 0 1rem;">
+        <div style="background:white; border-radius:12px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); padding:1.5rem;">
+            <p style="font-weight:700; color:#0a2e5c; text-transform:uppercase; font-size:0.8rem; letter-spacing:1px; margin-bottom:1rem;">📤 Compartir Comprobante</p>
+            <div style="display:flex; flex-wrap:wrap; gap:0.75rem;">
+                <button onclick="shareWhatsApp()" class="share-btn" style="background:#25D366;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.985-1.31A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" fill="none" stroke="white" stroke-width="1.5"/></svg>
+                    WhatsApp
+                </button>
+                <button onclick="shareEmail()" class="share-btn" style="background:#EA4335;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+                    Correo
+                </button>
+                <button onclick="shareMessenger()" class="share-btn" style="background:#0084FF;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.477 2 2 6.145 2 11.259c0 2.913 1.454 5.512 3.726 7.21V22l3.405-1.869c.909.252 1.87.388 2.869.388 5.523 0 10-4.145 10-9.259S17.523 2 12 2zm1.009 12.459l-2.552-2.72-4.98 2.72 5.479-5.813 2.614 2.72 4.918-2.72-5.479 5.813z"/></svg>
+                    Messenger
+                </button>
+                <button onclick="shareTelegram()" class="share-btn" style="background:#2AABEE;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.68 7.93c-.12.57-.45.7-.92.44l-2.53-1.87-1.22 1.18c-.14.14-.25.25-.51.25l.18-2.6 4.74-4.28c.21-.18-.04-.28-.32-.1l-5.85 3.68-2.52-.79c-.55-.17-.56-.55.12-.81l9.83-3.79c.46-.17.86.11.68.76z"/></svg>
+                    Telegram
+                </button>
+                <button onclick="shareNative()" class="share-btn" style="background:#6366f1;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    Más opciones
+                </button>
+                <button onclick="printDocument()" class="share-btn" style="background:#059669;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                    Imprimir / PDF
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- ==========================================
          JAVASCRIPT COMPLETO
          ========================================== -->
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         // ==========================================
         // BASE DE DATOS DE CLIENTES
         // ==========================================
@@ -606,6 +647,8 @@
                 service: data.service || 'Clases de canto',
                 currency: data.currency || 'COP',
                 method: data.method || 'Efectivo',
+                amount: data.amount || '',
+                desc: data.desc || '',
                 lastUpdated: new Date().toISOString()
             };
             saveClientsDB(db);
@@ -729,6 +772,8 @@
             document.getElementById('inp-service').value = client.service || 'Clases de canto';
             document.getElementById('inp-currency').value = client.currency || 'COP';
             document.getElementById('inp-method').value = client.method || 'Efectivo';
+            if (client.amount) document.getElementById('inp-amount').value = client.amount;
+            if (client.desc) document.getElementById('inp-desc').value = client.desc;
             
             closeAutocomplete();
             checkClientStatus(client.name);
@@ -775,7 +820,7 @@
         // ==========================================
         
         const INVOICE_KEY = 'efom_invoice_number';
-        const STARTING_NUMBER = 4;
+        const STARTING_NUMBER = 8;
         
         function getCurrentInvoiceNumber() {
             const stored = localStorage.getItem(INVOICE_KEY);
@@ -835,7 +880,9 @@
                     cid: document.getElementById('inp-cid').value,
                     service: document.getElementById('inp-service').value,
                     currency: document.getElementById('inp-currency').value,
-                    method: document.getElementById('inp-method').value
+                    method: document.getElementById('inp-method').value,
+                    amount: document.getElementById('inp-amount').value,
+                    desc: document.getElementById('inp-desc').value
                 });
                 checkClientStatus(clientName);
                 
@@ -1009,13 +1056,100 @@
             } catch (error) {
                 console.error('Error:', error);
                 alert("Error al generar PDF. Intenta usar 'Imprimir' como alternativa.");
-            } finally {
-                fab.style.transform = '';
-                fab.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-                    <polyline points="16 6 12 2 8 6"></polyline>
-                    <line x1="12" y1="2" x2="12" y2="15"></line>
-                </svg>`;
+            }
+        }
+
+        // ==========================================
+        // FUNCIONES DE COMPARTIR POR PLATAFORMA
+        // ==========================================
+
+        async function getPDFBlob() {
+            if(!form.checkValidity()){
+                form.reportValidity();
+                return null;
+            }
+            updateDocument();
+
+            const element = document.getElementById('capture-area');
+            const num = document.getElementById('inp-num').value;
+            const client = document.getElementById('inp-client').value.trim().replace(/\s+/g, '_');
+            const fileName = `EFOM_Soporte_${num}_${client}.pdf`;
+
+            const opt = {
+                margin: [0, 0, 0, 0],
+                filename: fileName,
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { scale: 4, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0, windowWidth: element.scrollWidth, windowHeight: element.scrollHeight, backgroundColor: '#ffffff', logging: false },
+                jsPDF: { unit: 'mm', format: [215.9, 279.4], orientation: 'portrait', compress: false }
+            };
+            await document.fonts.ready;
+            const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
+            return { blob: pdfBlob, fileName, num, client: client.replace(/_/g, ' ') };
+        }
+
+        async function shareWhatsApp() {
+            const result = await getPDFBlob();
+            if (!result) return;
+            const { blob, fileName, num, client } = result;
+            const file = new File([blob], fileName, { type: 'application/pdf' });
+            const text = `Soporte de pago N° ${num} - ${client} - EFOM`;
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({ files: [file], title: text, text });
+            } else {
+                // En desktop: descargar y abrir WhatsApp Web
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = fileName; a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 500);
+                window.open(`https://wa.me/?text=${encodeURIComponent(text + ' (PDF adjunto descargado)')}`, '_blank');
+            }
+        }
+
+        async function shareEmail() {
+            const result = await getPDFBlob();
+            if (!result) return;
+            const { blob, fileName, num, client } = result;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = fileName; a.click();
+            setTimeout(() => URL.revokeObjectURL(url), 500);
+            const subject = encodeURIComponent(`Soporte de Pago EFOM N° ${num}`);
+            const body = encodeURIComponent(`Estimado/a ${client},\n\nAdjunto el soporte de pago N° ${num} de EFOM.\n\nQuedamos atentos.\n\nEFOM - Escuela de Formación Musical`);
+            window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        }
+
+        async function shareMessenger() {
+            const result = await getPDFBlob();
+            if (!result) return;
+            const { blob, fileName, num, client } = result;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = fileName; a.click();
+            setTimeout(() => URL.revokeObjectURL(url), 500);
+            alert('PDF descargado. Ahora adjúntalo en Messenger manualmente.');
+            window.open('https://www.messenger.com', '_blank');
+        }
+
+        async function shareTelegram() {
+            const result = await getPDFBlob();
+            if (!result) return;
+            const { blob, fileName, num, client } = result;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = fileName; a.click();
+            setTimeout(() => URL.revokeObjectURL(url), 500);
+            const text = encodeURIComponent(`Soporte de pago N° ${num} - ${client} - EFOM`);
+            window.open(`https://t.me/share/url?url=&text=${text}`, '_blank');
+        }
+
+        async function shareNative() {
+            const result = await getPDFBlob();
+            if (!result) return;
+            const { blob, fileName, num, client } = result;
+            const file = new File([blob], fileName, { type: 'application/pdf' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({ files: [file], title: `Soporte EFOM N° ${num}`, text: `Soporte de pago ${client}` });
+            } else {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = fileName; a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 500);
+                alert('PDF descargado exitosamente.');
             }
         }
 
@@ -1036,7 +1170,9 @@
                     cid: document.getElementById('inp-cid').value,
                     service: document.getElementById('inp-service').value,
                     currency: document.getElementById('inp-currency').value,
-                    method: document.getElementById('inp-method').value
+                    method: document.getElementById('inp-method').value,
+                    amount: document.getElementById('inp-amount').value,
+                    desc: document.getElementById('inp-desc').value
                 });
             }
             
@@ -1079,18 +1215,5 @@
         if ("serviceWorker" in navigator) {
             window.addEventListener("load", () => {
                 navigator.serviceWorker
-                    .register("./service-worker.js")
-                    .then((registration) => {
-                        console.log("SW registrado:", registration.scope);
-                    })
-                    .catch((err) => {
-                        console.log("SW error:", err);
-                    });
-            });
-        }
-    </script>
-
-</body>
-</html> 
 
 
