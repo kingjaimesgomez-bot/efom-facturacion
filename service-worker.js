@@ -1,15 +1,9 @@
-const CACHE_NAME = 'efom-comprobantes-v1';
+const CACHE_NAME = 'efom-comprobantes-v2';
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
-  './assets/icon-72.png',
-  './assets/icon-96.png',
-  './assets/icon-128.png',
-  './assets/icon-144.png',
-  './assets/icon-152.png',
   './assets/icon-192.png',
-  './assets/icon-384.png',
   './assets/icon-512.png',
   './assets/logo-efom.jpg'
 ];
