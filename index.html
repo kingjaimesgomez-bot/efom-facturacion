@@ -364,13 +364,23 @@ function updateInvoiceDisplay(n){const f=formatInvoiceNumber(n);document.getElem
 
 const form=document.getElementById('pay-form');
 let isPrinting=false;
-document.addEventListener('DOMContentLoaded',()=>{
-    if(!localStorage.getItem(INVOICE_KEY)) saveInvoiceNumber(STARTING_NUMBER);
-    const today=new Date();
-    document.getElementById('inp-date').valueAsDate=today;
+// Inicialización inmediata (el script está al final del body, DOM ya existe)
+(function initApp(){
+    try {
+        if(!localStorage.getItem(INVOICE_KEY)) saveInvoiceNumber(STARTING_NUMBER);
+    } catch(e) { console.warn('localStorage no disponible'); }
+    const today = new Date();
+    const dateInput = document.getElementById('inp-date');
+    if(dateInput) {
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth()+1).padStart(2,'0');
+        const dd = String(today.getDate()).padStart(2,'0');
+        dateInput.value = yyyy+'-'+mm+'-'+dd;
+    }
     updateInvoiceDisplay(getCurrentInvoiceNumber());
-    document.getElementById('out-date').innerText=today.toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'});
-});
+    const outDate = document.getElementById('out-date');
+    if(outDate) outDate.innerText = today.toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'});
+})();
 
 form.addEventListener('submit',e=>{
     e.preventDefault();
@@ -451,4 +461,3 @@ async function shareNative(){const r=await getPDFBlob();const file=new File([r.b
 
 document.getElementById('inp-service').addEventListener('change',e=>{
     if(e.target.value==='Otros'){const custom=promp
-
