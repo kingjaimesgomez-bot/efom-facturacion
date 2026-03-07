@@ -1,11 +1,12 @@
-const CACHE_NAME = 'efom-comprobantes-v2';
+const CACHE_NAME = 'efom-comprobantes-v3';
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
   './assets/icon-192.png',
   './assets/icon-512.png',
-  './assets/logo-efom.jpg'
+  './assets/logo-efom.jpg',
+  './assets/firma.png'
 ];
 
 self.addEventListener('install', (event) => {
