@@ -364,13 +364,13 @@ function updateInvoiceDisplay(n){const f=formatInvoiceNumber(n);document.getElem
 
 const form=document.getElementById('pay-form');
 let isPrinting=false;
-window.onload=()=>{
+document.addEventListener('DOMContentLoaded',()=>{
     if(!localStorage.getItem(INVOICE_KEY)) saveInvoiceNumber(STARTING_NUMBER);
     const today=new Date();
     document.getElementById('inp-date').valueAsDate=today;
     updateInvoiceDisplay(getCurrentInvoiceNumber());
     document.getElementById('out-date').innerText=today.toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'});
-};
+});
 
 form.addEventListener('submit',e=>{
     e.preventDefault();
