@@ -1,4 +1,4 @@
-const CACHE_NAME = 'efom-comprobantes-v3';
+const CACHE_NAME = 'efom-comprobantes-v4';
 const urlsToCache = [
   './',
   './index.html',
@@ -11,8 +11,7 @@ const urlsToCache = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
   self.skipWaiting();
 });
@@ -33,12 +32,27 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const url = event.request.url;
+
+  // Red primero para el HTML y el manifest (siempre trae la versión más nueva si hay internet)
+  const isAppShell = url.endsWith('/') || url.endsWith('index.html') || url.endsWith('manifest.json');
+
+  if (isAppShell) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse.clone()));
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request)) // sin internet: usa la copia guardada
+    );
+    return;
+  }
+
+  // Caché primero para assets pesados (logo, firma, íconos)
   event.respondWith(
     caches.match(event.request).then((response) => {
-      if (response) {
-        return response;
-      }
-      return fetch(event.request);
+      return response || fetch(event.request);
     })
   );
 });
