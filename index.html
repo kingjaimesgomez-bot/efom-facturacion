@@ -23,10 +23,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        /* ==========================================
-           ESTILOS COMPLETOS - COPIA TODO TU CSS AQUÍ
-           ========================================== */
-        
         :root {
             --primary-blue: #0a2e5c; 
             --secondary-blue: #1e4b8a;
@@ -126,6 +122,28 @@
             font-weight: 700;
             border-color: #e5e7eb;
         }
+
+        .num-row {
+            display: flex;
+            gap: 6px;
+            align-items: stretch;
+        }
+
+        .num-row input { flex: 1; }
+
+        .btn-edit-num {
+            flex-shrink: 0;
+            width: 44px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .btn-edit-num:hover { background: #f3f4f6; }
+        .btn-edit-num.editing { background: #059669; color: white; border-color: #059669; }
 
         .autocomplete-container {
             position: relative;
@@ -231,15 +249,8 @@
             display: none;
         }
 
-        .client-status.saved {
-            display: block;
-            color: #059669;
-        }
-
-        .client-status.new {
-            display: block;
-            color: #f59e0b;
-        }
+        .client-status.saved { display: block; color: #059669; }
+        .client-status.new { display: block; color: #f59e0b; }
 
         .certificate-paper {
             width: 21.59cm; 
@@ -416,6 +427,79 @@
         .status-badge.new { background: #fef3c7; color: #92400e; }
         .status-badge.saved { background: #d1fae5; color: #065f46; }
 
+        /* ===== BARRA DE COMPARTIR (debajo del documento) ===== */
+        .share-bar {
+            max-width: 21.59cm;
+            margin: 1.5rem auto 3rem auto;
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .share-bar-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        .share-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .share-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.8rem 1.4rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: white;
+            transition: all 0.2s;
+        }
+
+        .share-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .share-btn.whatsapp { background: #25D366; }
+        .share-btn.email { background: #4b5563; }
+        .share-btn.messenger { background: #0084FF; }
+        .share-btn.download { background: var(--primary-blue); }
+
+        .share-hint {
+            margin-top: 0.9rem;
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+
+        /* ===== TOAST ===== */
+        #app-toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111827;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            z-index: 2000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            max-width: 90vw;
+            text-align: center;
+        }
+
         @media print {
             body { background: white !important; }
             .no-print, .fab-share { display: none !important; }
@@ -442,6 +526,8 @@
         .animate-in {
             animation: slideIn 0.3s ease-out;
         }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -456,7 +542,10 @@
             <form id="pay-form">
                 <div class="form-group">
                     <label>N° Soporte</label>
-                    <input type="text" id="inp-num" class="readonly-field" readonly>
+                    <div class="num-row">
+                        <input type="text" id="inp-num" class="readonly-field" readonly>
+                        <button type="button" id="btn-edit-num" class="btn-edit-num" onclick="toggleEditInvoiceNumber()" title="Editar numeración manualmente">✏️</button>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -480,6 +569,11 @@
                 <div class="form-group">
                     <label>Documento Identidad</label>
                     <input type="text" id="inp-cid" placeholder="C.C. / NIT / Pasaporte">
+                </div>
+
+                <div class="form-group">
+                    <label>Dirección (Opcional)</label>
+                    <input type="text" id="inp-address" placeholder="Dejar vacío si no aplica">
                 </div>
                 
                 <div class="form-group">
@@ -538,7 +632,6 @@
             <div id="capture-area" class="certificate-paper">
                 <div class="cert-header">
                     <div class="logo-box">
-                        <!-- RUTA RELATIVA PARA EL LOGO -->
                         <img src="./assets/logo-efom.jpg" alt="Logo EFOM"
                              onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22100%22%3E%3Crect fill=%22%230a2e5c%22 width=%22200%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-family=%22Arial%22 font-size=%2224%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22%3EEFOM%3C/text%3E%3C/svg%3E';"
                              crossorigin="anonymous">
@@ -565,6 +658,7 @@
                     <tr><td class="td-label">Fecha de Pago</td><td class="td-value" id="out-date">-</td></tr>
                     <tr><td class="td-label">Recibido de</td><td class="td-value" id="out-client" style="font-weight:700;">-</td></tr>
                     <tr><td class="td-label">Identificación</td><td class="td-value" id="out-cid">-</td></tr>
+                    <tr id="row-address" style="display:none;"><td class="td-label">Dirección</td><td class="td-value" id="out-address">-</td></tr>
                     <tr><td class="td-label">Servicio</td><td class="td-value" id="out-service">-</td></tr>
                     <tr><td class="td-label">Concepto</td><td class="td-value" id="out-desc" style="font-style:italic;">-</td></tr>
                     <tr><td class="td-label">Medio de Pago</td><td class="td-value" id="out-method">-</td></tr>
@@ -585,17 +679,29 @@
                         </div>
                     </div>
                     <div class="contact-info">
-                        <p><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="81eae8efe6ebe0e8ece4f2e6eeece4fbc1e6ece0e8edafe2eeec">[email&#160;protected]</a></p>
-                        <p><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5a3f29392f3f363b3e3f3c3528373b39333534372f2933393b363f3c35371a3d373b333674393537">[email&#160;protected]</a></p>
+                        <p>efom.direccion@gmail.com</p>
+                        <p>elkinjaimesgomez@gmail.com</p>
                         <p><em>Formación Consciente</em></p>
                         <p><strong>Cúcuta, Colombia</strong></p>
                     </div>
                 </div>
             </div>
+
+            <!-- BARRA DE COMPARTIR: fuera de #capture-area, NO sale en el PDF ni al imprimir -->
+            <div class="share-bar no-print" id="share-bar">
+                <p class="share-bar-title">Compartir este comprobante</p>
+                <div class="share-buttons">
+                    <button type="button" class="share-btn whatsapp" onclick="shareVia('whatsapp')">📲 WhatsApp</button>
+                    <button type="button" class="share-btn email" onclick="shareVia('email')">✉️ Correo</button>
+                    <button type="button" class="share-btn messenger" onclick="shareVia('messenger')">💬 Messenger</button>
+                    <button type="button" class="share-btn download" onclick="shareVia('download')">⬇️ Descargar PDF</button>
+                </div>
+                <p class="share-hint">En celular se abre el panel nativo para adjuntar el PDF directamente. En computador el PDF se descarga y debes adjuntarlo manualmente en la app elegida.</p>
+            </div>
         </main>
     </div>
 
-    <button class="fab-share no-print" onclick="sharePDF()" title="Compartir PDF">
+    <button class="fab-share no-print" onclick="shareVia('native')" title="Compartir PDF">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
             <polyline points="16 6 12 2 8 6"></polyline>
@@ -603,14 +709,23 @@
         </svg>
     </button>
 
-    <!-- ==========================================
-         JAVASCRIPT COMPLETO
-         ========================================== -->
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    <div id="app-toast"></div>
+
+    <script>
+        // ==========================================
+        // TOAST DE AVISO (reemplaza confirm() intrusivos)
+        // ==========================================
+        function showToast(msg, duration) {
+            const toast = document.getElementById('app-toast');
+            toast.textContent = msg;
+            toast.style.opacity = '1';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => { toast.style.opacity = '0'; }, duration || 3200);
+        }
+
         // ==========================================
         // FIRMA DIGITAL - carga desde ./assets/firma.png
         // ==========================================
-
         function loadSavedSignature() {
             const img = document.getElementById('sig-img');
             const placeholder = document.getElementById('sig-placeholder');
@@ -628,7 +743,6 @@
         // ==========================================
         // BASE DE DATOS DE CLIENTES
         // ==========================================
-        
         const CLIENTS_KEY = 'efom_clients_database';
         
         function getClientsDB() {
@@ -646,6 +760,7 @@
             db[normalizedName] = {
                 name: name.trim(),
                 cid: data.cid || '',
+                address: data.address || '',
                 service: data.service || 'Clases de canto',
                 currency: data.currency || 'COP',
                 method: data.method || 'Efectivo',
@@ -664,20 +779,17 @@
             const db = getClientsDB();
             const normalizedQuery = query.toLowerCase().trim();
             const results = [];
-            
             for (const key in db) {
-                if (key.includes(normalizedQuery) || db[key].cid.includes(normalizedQuery)) {
+                if (key.includes(normalizedQuery) || (db[key].cid || '').includes(normalizedQuery)) {
                     results.push(db[key]);
                 }
             }
-            
             return results.sort((a, b) => a.name.localeCompare(b.name));
         }
 
         // ==========================================
         // AUTOCOMPLETE
         // ==========================================
-        
         const clientInput = document.getElementById('inp-client');
         const autocompleteList = document.getElementById('autocomplete-list');
         const clientStatus = document.getElementById('client-status');
@@ -689,13 +801,11 @@
         
         clientInput.addEventListener('input', (e) => {
             const value = e.target.value;
-            
             if (value.length < 2) {
                 closeAutocomplete();
                 checkClientStatus(value);
                 return;
             }
-            
             currentResults = searchClients(value);
             renderAutocomplete(currentResults, value);
             checkClientStatus(value);
@@ -731,11 +841,9 @@
                 closeAutocomplete();
                 return;
             }
-            
             autocompleteList.innerHTML = '';
             selectedIndex = -1;
-            
-            results.forEach((client, index) => {
+            results.forEach((client) => {
                 const div = document.createElement('div');
                 div.className = 'autocomplete-item';
                 div.innerHTML = `
@@ -745,7 +853,6 @@
                 div.addEventListener('click', () => selectClient(client));
                 autocompleteList.appendChild(div);
             });
-            
             autocompleteList.style.display = 'block';
             autocompleteList.classList.add('animate-in');
         }
@@ -760,7 +867,6 @@
             items.forEach((item, index) => {
                 item.classList.toggle('active', index === selectedIndex);
             });
-            
             if (selectedIndex >= 0 && items[selectedIndex]) {
                 items[selectedIndex].scrollIntoView({ block: 'nearest' });
             }
@@ -769,17 +875,14 @@
         function selectClient(client) {
             clientInput.value = client.name;
             document.getElementById('inp-cid').value = client.cid || '';
+            document.getElementById('inp-address').value = client.address || '';
             document.getElementById('inp-service').value = client.service || 'Clases de canto';
             document.getElementById('inp-currency').value = client.currency || 'COP';
             document.getElementById('inp-method').value = client.method || 'Efectivo';
-            
             closeAutocomplete();
             checkClientStatus(client.name);
-            
             clientInput.style.background = '#d1fae5';
-            setTimeout(() => {
-                clientInput.style.background = '';
-            }, 500);
+            setTimeout(() => { clientInput.style.background = ''; }, 500);
         }
         
         function closeAutocomplete() {
@@ -791,14 +894,12 @@
         function checkClientStatus(name) {
             const client = findClient(name);
             const normalizedName = name.trim().toLowerCase();
-            
             if (!normalizedName) {
                 clientStatus.style.display = 'none';
                 clientBadge.style.display = 'none';
                 clientSavedBadge.style.display = 'none';
                 return;
             }
-            
             if (client) {
                 clientStatus.textContent = '✓';
                 clientStatus.className = 'client-status saved';
@@ -816,20 +917,14 @@
         // ==========================================
         // SISTEMA DE CONSECUTIVOS
         // ==========================================
-        
         const INVOICE_KEY = 'efom_invoice_number';
-        const STARTING_NUMBER = 8;
+        const STARTING_NUMBER = 23; // Próximo comprobante a emitir por defecto (0023)
         
         function getCurrentInvoiceNumber() {
             const stored = localStorage.getItem(INVOICE_KEY);
-            if (!stored) return STARTING_NUMBER;
-            const num = parseInt(stored);
-            // Si el número guardado era el antiguo por defecto (1000), reiniciar a 8
-            if (num === 1000) {
-                saveInvoiceNumber(STARTING_NUMBER);
-                return STARTING_NUMBER;
-            }
-            return num;
+            if (stored === null) return STARTING_NUMBER;
+            const num = parseInt(stored, 10);
+            return isNaN(num) ? STARTING_NUMBER : num;
         }
         
         function formatInvoiceNumber(num) {
@@ -853,55 +948,79 @@
             document.getElementById('out-num').innerText = formatted;
         }
 
+        // Botón ✏️ / 💾 para ajustar el consecutivo a mano
+        function toggleEditInvoiceNumber() {
+            const input = document.getElementById('inp-num');
+            const btn = document.getElementById('btn-edit-num');
+
+            if (input.readOnly) {
+                input.readOnly = false;
+                input.classList.remove('readonly-field');
+                btn.classList.add('editing');
+                btn.textContent = '💾';
+                btn.title = 'Guardar número';
+                input.focus();
+                input.select();
+            } else {
+                const val = parseInt(input.value, 10);
+                if (isNaN(val) || val < 0) {
+                    alert('Ingresa un número de comprobante válido.');
+                    return;
+                }
+                saveInvoiceNumber(val);
+                updateInvoiceDisplay(val);
+                input.readOnly = true;
+                input.classList.add('readonly-field');
+                btn.classList.remove('editing');
+                btn.textContent = '✏️';
+                btn.title = 'Editar numeración manualmente';
+                showToast('N° de comprobante ajustado a ' + formatInvoiceNumber(val));
+            }
+        }
+
         // ==========================================
         // INICIALIZACIÓN
         // ==========================================
-        
         const form = document.getElementById('pay-form');
         let currentFormattedAmount = "$ 0";
-        let isPrinting = false;
 
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date();
             document.getElementById('inp-date').valueAsDate = today;
             updateInvoiceDisplay(getCurrentInvoiceNumber());
             loadSavedSignature();
-            
             document.getElementById('out-date').innerText = today.toLocaleDateString('es-CO', { 
                 day: 'numeric', month: 'long', year: 'numeric' 
             });
         });
 
         // ==========================================
-        // ACTUALIZAR Y GUARDAR
+        // GUARDAR CLIENTE Y ACTUALIZAR VISTA
         // ==========================================
-        
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             updateDocument();
-            
             const clientName = document.getElementById('inp-client').value;
             if (clientName.trim()) {
                 saveClient(clientName, {
                     cid: document.getElementById('inp-cid').value,
+                    address: document.getElementById('inp-address').value,
                     service: document.getElementById('inp-service').value,
                     currency: document.getElementById('inp-currency').value,
                     method: document.getElementById('inp-method').value
                 });
                 checkClientStatus(clientName);
-                
                 const btn = e.submitter;
                 const originalText = btn.innerHTML;
                 btn.innerHTML = '✅ Cliente Guardado';
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                }, 1500);
+                setTimeout(() => { btn.innerHTML = originalText; }, 1500);
             }
         });
 
         function updateDocument() {
             const client = document.getElementById('inp-client').value;
             const cid = document.getElementById('inp-cid').value || 'N/A';
+            const address = document.getElementById('inp-address').value.trim();
             const service = document.getElementById('inp-service').value;
             const amount = document.getElementById('inp-amount').value;
             const currency = document.getElementById('inp-currency').value;
@@ -911,7 +1030,6 @@
 
             const [year, month, day] = rawDate.split('-').map(Number);
             const dateObj = new Date(year, month - 1, day);
-            
             const formattedDate = dateObj.toLocaleDateString('es-CO', { 
                 day: 'numeric', month: 'long', year: 'numeric' 
             });
@@ -921,7 +1039,6 @@
                 'USD': { locale: 'en-US', currency: 'USD', digits: 2 },
                 'EUR': { locale: 'de-DE', currency: 'EUR', digits: 2 }
             };
-
             const config = currencyLocales[currency];
             const formattedAmount = new Intl.NumberFormat(config.locale, {
                 style: 'currency',
@@ -940,64 +1057,59 @@
             document.getElementById('out-method').innerText = method;
             document.getElementById('out-date').innerText = formattedDate;
 
+            // Dirección: solo se muestra la fila si el campo tiene contenido
+            const rowAddress = document.getElementById('row-address');
+            if (address) {
+                document.getElementById('out-address').innerText = address;
+                rowAddress.style.display = 'table-row';
+            } else {
+                rowAddress.style.display = 'none';
+            }
+
             if (window.innerWidth < 1100) {
                 document.getElementById('preview').scrollIntoView({ behavior: 'smooth' });
             }
         }
 
         // ==========================================
-        // IMPRESIÓN
+        // IMPRESIÓN (avanza el consecutivo automáticamente)
         // ==========================================
-        
         function printDocument() {
-            if(!form.checkValidity()) {
+            if (!form.checkValidity()) {
                 form.reportValidity();
                 return;
             }
-            
             updateDocument();
-            isPrinting = true;
-            
-            setTimeout(() => {
-                window.print();
-            }, 100);
+            persistCurrentClient();
+            setTimeout(() => { window.print(); }, 100);
         }
 
         window.onafterprint = () => {
-            if(!isPrinting) return;
-            isPrinting = false;
-            
-            setTimeout(() => {
-                if(confirm('¿Se imprimió/guardó correctamente?\n\nSe generará el siguiente número consecutivo.')) {
-                    generateNewInvoice();
-                }
-            }, 100);
+            generateNewInvoice();
+            showToast('Comprobante impreso/guardado. Nuevo N° listo para el siguiente cliente.');
         };
 
-        // ==========================================
-        // COMPARTIR PDF - ALTA CALIDAD
-        // ==========================================
-        
-        async function sharePDF() {
-            if(!form.checkValidity()){
-                form.reportValidity();
-                document.querySelector('.panel-form').scrollIntoView({ behavior: 'smooth' });
-                return;
+        function persistCurrentClient() {
+            const clientName = document.getElementById('inp-client').value;
+            if (clientName.trim()) {
+                saveClient(clientName, {
+                    cid: document.getElementById('inp-cid').value,
+                    address: document.getElementById('inp-address').value,
+                    service: document.getElementById('inp-service').value,
+                    currency: document.getElementById('inp-currency').value,
+                    method: document.getElementById('inp-method').value
+                });
             }
+        }
 
+        // ==========================================
+        // GENERAR PDF (blob reutilizable)
+        // ==========================================
+        async function generatePDFBlob() {
             updateDocument();
-            
-            const fab = document.querySelector('.fab-share');
-            fab.style.transform = 'scale(0.8)';
-            fab.innerHTML = '<div style="width:24px;height:24px;border:3px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>';
-            
-            const style = document.createElement('style');
-            style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
-            document.head.appendChild(style);
-
             const element = document.getElementById('capture-area');
             const num = document.getElementById('inp-num').value;
-            const client = document.getElementById('inp-client').value.trim().replace(/\s+/g, '_');
+            const client = document.getElementById('inp-client').value.trim().replace(/\s+/g, '_') || 'Cliente';
             const fileName = `EFOM_Soporte_${num}_${client}.pdf`;
 
             const opt = {
@@ -1023,101 +1135,130 @@
                 }
             };
 
-            try {
-                await document.fonts.ready;
-                
-                const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
-                const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+            await document.fonts.ready;
+            const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
+            return { blob: pdfBlob, fileName };
+        }
 
+        function downloadBlob(blob, fileName) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+        }
+
+        // ==========================================
+        // COMPARTIR (WhatsApp / Correo / Messenger / Descargar / Nativo)
+        // ==========================================
+        async function shareVia(platform) {
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                document.querySelector('.panel-form').scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+
+            const num = document.getElementById('inp-num').value;
+            const client = document.getElementById('inp-client').value;
+
+            // Feedback visual en el FAB si aplica
+            const fab = document.querySelector('.fab-share');
+            let originalFabHTML = null;
+            if (platform === 'native' && fab) {
+                originalFabHTML = fab.innerHTML;
+                fab.style.transform = 'scale(0.85)';
+                fab.innerHTML = '<div style="width:22px;height:22px;border:3px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>';
+            }
+
+            try {
+                persistCurrentClient();
+                const { blob, fileName } = await generatePDFBlob();
+                const file = new File([blob], fileName, { type: 'application/pdf' });
+
+                // En celulares con soporte de compartir nativo, se adjunta el PDF directamente
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share({
                         files: [file],
                         title: `Soporte de Pago EFOM - ${num}`,
-                        text: `Adjunto soporte de pago N° ${num} - ${client.replace(/_/g, ' ')}`
+                        text: `Adjunto soporte de pago N° ${num} - ${client}`
                     });
-                    
-                    setTimeout(() => {
-                        if(confirm('¿Desea generar un nuevo comprobante con el siguiente número?')) {
-                            generateNewInvoice();
-                        }
-                    }, 500);
-                    
-                } else {
-                    const url = URL.createObjectURL(pdfBlob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = fileName;
-                    link.click();
-                    
-                    setTimeout(() => URL.revokeObjectURL(url), 100);
-                    
-                    setTimeout(() => {
-                        if(confirm('PDF descargado. ¿Desea generar un nuevo comprobante?')) {
-                            generateNewInvoice();
-                        }
-                    }, 500);
+                    generateNewInvoice();
+                    showToast('Comprobante compartido. Nuevo N° listo.');
+                    return;
                 }
+
+                // Alternativa de escritorio: descargar y abrir la app/web elegida
+                downloadBlob(blob, fileName);
+                const message = encodeURIComponent(`Hola ${client}, adjunto tu soporte de pago N° ${num} de EFOM.`);
+
+                if (platform === 'whatsapp') {
+                    window.open(`https://wa.me/?text=${message}`, '_blank');
+                    showToast('PDF descargado. Adjúntalo manualmente en la conversación de WhatsApp.');
+                } else if (platform === 'email') {
+                    window.location.href = `mailto:?subject=${encodeURIComponent('Soporte de Pago EFOM N° ' + num)}&body=${message}`;
+                    showToast('PDF descargado. Adjúntalo manualmente en tu correo.');
+                } else if (platform === 'messenger') {
+                    window.open('https://www.messenger.com/', '_blank');
+                    showToast('PDF descargado. Adjúntalo manualmente en Messenger.');
+                } else {
+                    showToast('PDF descargado correctamente.');
+                }
+
+                generateNewInvoice();
             } catch (error) {
-                console.error('Error:', error);
-                alert("Error al generar PDF. Intenta usar 'Imprimir' como alternativa.");
+                if (error && error.name !== 'AbortError') {
+                    console.error('Error al compartir:', error);
+                    alert("Error al generar el PDF. Intenta usar 'Imprimir' como alternativa.");
+                }
             } finally {
-                fab.style.transform = '';
-                fab.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-                    <polyline points="16 6 12 2 8 6"></polyline>
-                    <line x1="12" y1="2" x2="12" y2="15"></line>
-                </svg>`;
+                if (platform === 'native' && fab && originalFabHTML) {
+                    fab.style.transform = '';
+                    fab.innerHTML = originalFabHTML;
+                }
             }
         }
 
         // ==========================================
         // NUEVO COMPROBANTE
         // ==========================================
-        
         function generateNewInvoice() {
             const newNum = incrementInvoiceNumber();
             updateInvoiceDisplay(newNum);
-            
+
             const dateField = document.getElementById('inp-date');
             const currentDate = dateField.value;
-            
-            const currentClient = document.getElementById('inp-client').value;
-            if (currentClient.trim()) {
-                saveClient(currentClient, {
-                    cid: document.getElementById('inp-cid').value,
-                    service: document.getElementById('inp-service').value,
-                    currency: document.getElementById('inp-currency').value,
-                    method: document.getElementById('inp-method').value
-                });
-            }
-            
+
+            persistCurrentClient();
+
             form.reset();
             dateField.value = currentDate;
-            
+
             document.getElementById('out-client').innerText = '-';
             document.getElementById('out-cid').innerText = '-';
             document.getElementById('out-service').innerText = '-';
             document.getElementById('out-desc').innerText = '-';
             document.getElementById('out-amount').innerText = '$ 0';
             document.getElementById('out-method').innerText = '-';
-            
+            document.getElementById('row-address').style.display = 'none';
+
             const [year, month, day] = currentDate.split('-').map(Number);
             const dateObj = new Date(year, month - 1, day);
             document.getElementById('out-date').innerText = dateObj.toLocaleDateString('es-CO', { 
                 day: 'numeric', month: 'long', year: 'numeric' 
             });
-            
+
             checkClientStatus('');
-            
+
             if (window.innerWidth < 1100) {
                 document.querySelector('.panel-form').scrollIntoView({ behavior: 'smooth' });
             }
         }
 
         document.getElementById('inp-service').addEventListener('change', (e) => {
-            if(e.target.value === 'Otros') {
+            if (e.target.value === 'Otros') {
                 const custom = prompt('Especifique el servicio:');
-                if(custom?.trim()) {
+                if (custom?.trim()) {
                     document.getElementById('inp-desc').value = 'Servicio: ' + custom.trim();
                 }
             }
@@ -1126,7 +1267,6 @@
         // ==========================================
         // REGISTRO DEL SERVICE WORKER (GitHub Pages)
         // ==========================================
-        
         if ("serviceWorker" in navigator) {
             window.addEventListener("load", () => {
                 navigator.serviceWorker
@@ -1135,7 +1275,6 @@
                     .catch(err => console.log("SW error:", err));
             });
         }
-
     </script>
 </body>
 </html>
